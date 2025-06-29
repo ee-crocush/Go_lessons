@@ -1,4 +1,4 @@
-package usecase
+package post
 
 import (
 	dom "GoNews/internal/domain/post"
@@ -13,7 +13,7 @@ type Parser interface {
 
 // ParseAndStoreUseCase интерфейс для парснига и сохранения RSS.
 type ParseAndStoreUseCase interface {
-	Execute(ctx context.Context, url string) error
+	Execute(ctx context.Context, in ParseAndStoreInputDTO) error
 }
 
 type parseAndStoreUseCase struct {
@@ -27,8 +27,12 @@ func NewParseAndStoreUseCase(repo dom.Repository, parser Parser) ParseAndStoreUs
 }
 
 // Execute выполняет парсинг RSS ленты по указанному URL и сохраняет полученные посты в репозиторий.
-func (p *parseAndStoreUseCase) Execute(ctx context.Context, url string) error {
-	items, err := p.parser.Parse(url)
+func (uc *parseAndStoreUseCase) Execute(ctx context.Context, in ParseAndStoreInputDTO) error {
+	if err := in.Validate(); err != nil {
+		return fmt.Errorf("ParseAndStoreUseCase.Validate: %w", err)
+	}
+
+	items, err := uc.parser.Parse(in.URL)
 	if err != nil {
 		return fmt.Errorf("ParseAndStoreUseCase.Parse: %w", err)
 	}
@@ -39,12 +43,12 @@ func (p *parseAndStoreUseCase) Execute(ctx context.Context, url string) error {
 			return fmt.Errorf("ParseAndStoreUseCase.NewPost: %w", err)
 		}
 
-		existing, err := p.repo.FindByID(ctx, post.ID())
+		existing, err := uc.repo.FindByID(ctx, post.ID())
 		if err == nil && existing != nil {
 			continue
 		}
 
-		if err = p.repo.Store(ctx, post); err != nil {
+		if err = uc.repo.Store(ctx, post); err != nil {
 			return fmt.Errorf("ParseAndStoreUseCase.Store: %w", err)
 		}
 	}

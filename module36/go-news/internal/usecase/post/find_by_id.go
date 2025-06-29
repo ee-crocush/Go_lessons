@@ -1,4 +1,4 @@
-package usecase
+package post
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 // FindByIDUseCase интерфейс для поиска новости по ID.
 type FindByIDUseCase interface {
-	Execute(ctx context.Context, in FindByIDInputDTO) (FindByIDOutputDTO, error)
+	Execute(ctx context.Context, in FindByIDInputDTO) (PostDTO, error)
 }
 
 type findByIDUseCase struct {
@@ -22,18 +22,18 @@ func NewFindByIDUseCase(repo dom.Repository) FindByIDUseCase {
 }
 
 // Execute выполняет бизнес-логику поиска новости по ID.
-func (f *findByIDUseCase) Execute(ctx context.Context, in FindByIDInputDTO) (FindByIDOutputDTO, error) {
+func (uc *findByIDUseCase) Execute(ctx context.Context, in FindByIDInputDTO) (PostDTO, error) {
 	postID, err := dom.NewPostID(in.ID)
 	if err != nil {
-		return FindByIDOutputDTO{}, fmt.Errorf("FindByIDUseCase.NewPostID: %w", err)
+		return PostDTO{}, fmt.Errorf("FindByIDUseCase.NewPostID: %w", err)
 	}
 
-	post, err := f.repo.FindByID(ctx, postID)
+	post, err := uc.repo.FindByID(ctx, postID)
 	if err != nil {
-		return FindByIDOutputDTO{}, fmt.Errorf("findByIDUseCase.FindByID: %w", err)
+		return PostDTO{}, fmt.Errorf("findByIDUseCase.FindByID: %w", err)
 	}
 
-	return FindByIDOutputDTO{
+	return PostDTO{
 		ID:      post.ID().Value(),
 		Title:   post.Title().Value(),
 		Content: post.Content().Value(),

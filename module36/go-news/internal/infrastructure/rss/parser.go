@@ -2,7 +2,7 @@
 package rss
 
 import (
-	uc "GoNews/internal/usecase"
+	uc "GoNews/internal/usecase/post"
 	"encoding/xml"
 	"fmt"
 	strip "github.com/grokify/html-strip-tags-go"

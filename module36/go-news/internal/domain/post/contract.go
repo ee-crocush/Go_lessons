@@ -15,7 +15,7 @@ type PostFinder interface {
 	// FindLast получает последнюю новость.
 	FindLast(ctx context.Context) (*Post, error)
 	// FindLatest получает последние n новостей.
-	FindLatest(ctx context.Context, limit int64) ([]*Post, error)
+	FindLatest(ctx context.Context, limit int) ([]*Post, error)
 	// FindAll получает все новости.
 	FindAll(ctx context.Context) ([]*Post, error)
 }

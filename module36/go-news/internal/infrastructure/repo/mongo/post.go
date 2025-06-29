@@ -70,7 +70,7 @@ func (r PostRepository) FindByID(ctx context.Context, postID dom.PostID) (*dom.P
 	return mapper.MapDocToPost(doc)
 }
 
-// FindLast получает последнуюю новость.
+// FindLast получает последную новость.
 func (r PostRepository) FindLast(ctx context.Context) (*dom.Post, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
