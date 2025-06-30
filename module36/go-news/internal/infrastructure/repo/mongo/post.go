@@ -86,11 +86,11 @@ func (r PostRepository) FindLast(ctx context.Context) (*dom.Post, error) {
 }
 
 // FindLatest получает последние n новостей.
-func (r PostRepository) FindLatest(ctx context.Context, limit int64) ([]*dom.Post, error) {
+func (r PostRepository) FindLatest(ctx context.Context, limit int) ([]*dom.Post, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	opts := options.Find().SetSort(bson.D{{Key: "pub_time", Value: -1}}).SetLimit(limit)
+	opts := options.Find().SetSort(bson.D{{Key: "pub_time", Value: -1}}).SetLimit(int64(limit))
 	cursor, err := r.collection.Find(ctx, bson.D{}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("PostRepository.FindLatest: %w", err)
