@@ -3,6 +3,7 @@ package logger
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"os"
 	"sync"
@@ -56,4 +57,35 @@ func GetLoggerWithContext(ctx context.Context) *zerolog.Logger {
 	newLogger := l.With().Logger()
 
 	return &newLogger
+}
+
+// LogRequest логирует начало и завершение обработки запроса.
+func LogRequest(log zerolog.Logger, ctx context.Context, protocol, method, path string) (context.Context, func()) {
+	requestID, _ := ctx.Value("request_id").(string)
+	if requestID == "" {
+		requestID = "req-" + uuid.New().String()
+	}
+
+	ctx = context.WithValue(ctx, "request_id", requestID)
+
+	// Логирование начала обработки запроса
+	log.Info().
+		Str("request_id", requestID).
+		Str("protocol", protocol).
+		Str("method", method).
+		Str("path", path).
+		Msg("Request received")
+
+	start := time.Now()
+
+	// Возвращаем функцию для завершения обработки
+	return ctx, func() {
+		log.Info().
+			Str("request_id", requestID).
+			Str("protocol", protocol).
+			Str("method", method).
+			Str("path", path).
+			Int64("duration_ms", time.Since(start).Milliseconds()).
+			Msg("Request processed")
+	}
 }

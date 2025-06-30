@@ -1,54 +1,31 @@
-// API приложения GoNews.
 package api
 
-import (
-	"encoding/json"
-	"net/http"
-	"strconv"
+import "github.com/gofiber/fiber/v2"
 
-	"GoNews/pkg/storage"
-
-	"github.com/gorilla/mux"
-)
-
-type API struct {
-	db *storage.DB
-	r  *mux.Router
+// Error представляет ошибку с кодом.
+type Error struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
 
-// Конструктор API.
-func New(db *storage.DB) *API {
-	a := API{db: db, r: mux.NewRouter()}
-	a.endpoints()
-	return &a
+// ErrWithCode возвращает структуру Error с заданным кодом и сообщением.
+func ErrWithCode(code, msg string) Error {
+	return Error{Code: code, Message: msg}
 }
 
-// Router возвращает маршрутизатор для использования
-// в качестве аргумента HTTP-сервера.
-func (api *API) Router() *mux.Router {
-	return api.r
+// Err оборачивает error в стандартный ответ с кодом "internal-error".
+func Err(err error) Error {
+	return Error{Code: "internal-error", Message: err.Error()}
 }
 
-// Регистрация методов API в маршрутизаторе запросов.
-func (api *API) endpoints() {
-	// получить n последних новостей
-	api.r.HandleFunc("/news/{n}", api.posts).Methods(http.MethodGet, http.MethodOptions)
-	// веб-приложение
-	api.r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webapp"))))
-}
-
-func (api *API) posts(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if r.Method == http.MethodOptions {
-		return
+// Req читает JSON‑тело и возвращает DTO.
+func Req[T any](c *fiber.Ctx) (T, error) {
+	var req T
+	if err := c.BodyParser(&req); err != nil {
+		return req, err
 	}
-	s := mux.Vars(r)["n"]
-	n, _ := strconv.Atoi(s)
-	news, err := api.db.News(n)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	json.NewEncoder(w).Encode(news)
+	return req, nil
 }
+
+// Resp возвращает данные ответа
+func Resp[T any](data T) T { return data }

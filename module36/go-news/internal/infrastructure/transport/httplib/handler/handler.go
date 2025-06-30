@@ -1,3 +1,4 @@
+// Package handler содержит все обработчики HTTP запросов
 package handler
 
 import (
@@ -27,10 +28,10 @@ type FindAllPostExecutor interface {
 
 // Handler представляет HTTP-handler для работы с новостями.
 type Handler struct {
-	findByIDUC FindByIDPostExecutor
-	findLastUC FindLastPostExecutor
+	findByIDUC   FindByIDPostExecutor
+	findLastUC   FindLastPostExecutor
 	findLatestUC FindLatestPostExecutor
-	findAllUC FindAllPostExecutor
+	findAllUC    FindAllPostExecutor
 }
 
 // NewHandler создает новый экземпляр HTTP-handler.
@@ -46,4 +47,4 @@ func NewHandler(
 		findLatestUC: findLatestUC,
 		findAllUC:    findAllUC,
 	}
-})
+}

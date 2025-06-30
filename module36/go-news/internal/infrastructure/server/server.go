@@ -2,6 +2,9 @@
 package server
 
 import (
+	"GoNews/internal/infrastructure/config"
+	"GoNews/internal/infrastructure/server/fiber"
+	http_handler "GoNews/internal/infrastructure/transport/httplib/handler"
 	"context"
 	"fmt"
 	"os"
@@ -16,6 +19,19 @@ import (
 type GracefulServer interface {
 	Start() error
 	Shutdown(ctx context.Context) error
+}
+
+// CreateServers создаёт список серверов на основе конфигурации.
+func CreateServers(cfg config.Config, h *http_handler.Handler) ([]GracefulServer, error) {
+	var servers []GracefulServer
+
+	servers = append(servers, fiber.NewFiberServer(cfg, h))
+
+	if len(servers) == 0 {
+		return nil, fmt.Errorf("no servers are enabled in the configuration")
+	}
+
+	return servers, nil
 }
 
 // StartAll запускает все сервера, слушает ошибки и сигналы, делает graceful shutdown

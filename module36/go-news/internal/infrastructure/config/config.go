@@ -12,9 +12,12 @@ import (
 
 // AppConfig - конфигурация приложения.
 type AppConfig struct {
-	Name         string `yaml:"name"`
-	ReadTimeout  int    `yaml:"read_timeout"`
-	WriteTimeout int    `yaml:"write_timeout"`
+	Name                string `yaml:"name"`
+	ReadTimeout         int    `yaml:"read_timeout"`
+	WriteTimeout        int    `yaml:"write_timeout"`
+	EnableRequestID     bool   `yaml:"enable_request_id"`
+	EnableLogging       bool   `yaml:"enable_logging"`
+	EnableErrorHandling bool   `yaml:"enable_error_handling"`
 }
 
 // MongoConfig конфигурация MongoDB.
@@ -41,9 +44,8 @@ func (c *MongoConfig) URI() *url.URL {
 
 // HTTPConfig - конфигурация HTTP сервера.
 type HTTPConfig struct {
-	Host    string `yaml:"host" validate:"required"`
-	Port    int    `yaml:"port" validate:"required"`
-	Enabled bool   `yaml:"enabled" validate:"required"`
+	Host string `yaml:"host" validate:"required"`
+	Port int    `yaml:"port" validate:"required"`
 }
 
 // LoggingConfig - конфигурация логирования.
