@@ -4,6 +4,7 @@ import (
 	uc "GoNews/internal/usecase/post"
 	"GoNews/pkg/api"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 // FindByIdRequest - входные данные из тела запроса для получения новости по ID.
@@ -22,12 +23,19 @@ type FindByIdRequestResponse struct {
 
 // FindByIDHandler обрабатывает запрос (GET /news/<id>).
 func (h *Handler) FindByIDHandler(c *fiber.Ctx) error {
-	req, err := api.Req[FindByIdRequest](c)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(api.Err(err))
+	idParam := c.Params("id")
+	if idParam == "" {
+		return c.Status(fiber.StatusBadRequest).
+			JSON(api.ErrWithCode("missing-id", "missing post ID in URL"))
 	}
 
-	in := uc.FindByIDInputDTO{ID: req.ID}
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		return c.Status(fiber.StatusBadRequest).
+			JSON(api.ErrWithCode("invalid-id", "post ID must be positive integer"))
+	}
+
+	in := uc.FindByIDInputDTO{ID: int32(id)}
 	out, err := h.findByIDUC.Execute(c.Context(), in)
 
 	if err != nil {

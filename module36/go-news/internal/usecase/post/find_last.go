@@ -6,21 +6,19 @@ import (
 	"fmt"
 )
 
-// FindLastUseCase интерфейс для поиска последней новости.
-type FindLastUseCase interface {
-	Execute(ctx context.Context) (PostDTO, error)
-}
+var _ FindLastContract = (*FindLastUseCase)(nil)
 
-type findLastUseCase struct {
+// FindLastUseCase представляет структуру, реализующую бизнес-логику для поиска последней новости.
+type FindLastUseCase struct {
 	repo dom.Repository
 }
 
 // NewFindLastUseCase создает новый экземпляр usecase для поиска последней новости.
-func NewFindLastUseCase(repo dom.Repository) FindByIDUseCase {
-	return &findByIDUseCase{repo: repo}
+func NewFindLastUseCase(repo dom.Repository) *FindLastUseCase {
+	return &FindLastUseCase{repo: repo}
 }
 
-func (uc *findLastUseCase) Execute(ctx context.Context) (PostDTO, error) {
+func (uc *FindLastUseCase) Execute(ctx context.Context) (PostDTO, error) {
 	post, err := uc.repo.FindLast(ctx)
 	if err != nil {
 		return PostDTO{}, fmt.Errorf("FindLastUseCase.Execute: %w", err)

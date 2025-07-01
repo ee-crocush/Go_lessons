@@ -14,8 +14,7 @@ import (
 
 // Feed представляет RSS ленту.
 type Feed struct {
-	XMLName xml.Name `xml:"rss"`
-	Channel Channel
+	Channel Channel `xml:"channel"`
 }
 
 // Channel представляет канал RSS.
@@ -23,7 +22,7 @@ type Channel struct {
 	Title       string `xml:"title"`
 	Description string `xml:"description"`
 	Link        string `xml:"link"`
-	Items       []Item `xml:"items"`
+	Items       []Item `xml:"item"`
 }
 
 // Item представляет элемент RSS.
@@ -43,7 +42,7 @@ type Parser struct {
 func NewParser(timeout time.Duration) *Parser {
 	return &Parser{
 		client: &http.Client{
-			Timeout: time.Second * timeout,
+			Timeout: timeout,
 		},
 	}
 }

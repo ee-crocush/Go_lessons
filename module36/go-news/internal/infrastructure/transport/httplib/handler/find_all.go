@@ -18,7 +18,7 @@ func (h *Handler) FindAllHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(api.Err(err))
 	}
 
-	posts := make([]PostItem, len(out))
+	posts := make([]PostItem, 0, len(out))
 	for _, post := range out {
 		posts = append(
 			posts, PostItem{

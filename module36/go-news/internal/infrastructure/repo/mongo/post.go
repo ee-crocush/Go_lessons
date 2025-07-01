@@ -30,7 +30,7 @@ func NewPostRepository(db *mongo.Database, timeout time.Duration) *PostRepositor
 }
 
 // Store сохраняет новости в MongoDB.
-func (r PostRepository) Store(ctx context.Context, post *dom.Post) error {
+func (r *PostRepository) Store(ctx context.Context, post *dom.Post) error {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -57,21 +57,21 @@ func (r PostRepository) Store(ctx context.Context, post *dom.Post) error {
 }
 
 // FindByID находит новость по его ID.
-func (r PostRepository) FindByID(ctx context.Context, postID dom.PostID) (*dom.Post, error) {
+func (r *PostRepository) FindByID(ctx context.Context, postID dom.PostID) (*dom.Post, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
 	var doc mapper.PostDocument
 
-	if err := r.collection.FindOne(ctx, bson.M{"_id": postID}).Decode(&doc); err != nil {
+	if err := r.collection.FindOne(ctx, bson.M{"_id": postID.Value()}).Decode(&doc); err != nil {
 		return nil, fmt.Errorf("PostRepository.FindByID: %w", err)
 	}
 
 	return mapper.MapDocToPost(doc)
 }
 
-// FindLast получает последную новость.
-func (r PostRepository) FindLast(ctx context.Context) (*dom.Post, error) {
+// FindLast получает последнюю новость.
+func (r *PostRepository) FindLast(ctx context.Context) (*dom.Post, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -86,7 +86,7 @@ func (r PostRepository) FindLast(ctx context.Context) (*dom.Post, error) {
 }
 
 // FindLatest получает последние n новостей.
-func (r PostRepository) FindLatest(ctx context.Context, limit int) ([]*dom.Post, error) {
+func (r *PostRepository) FindLatest(ctx context.Context, limit int) ([]*dom.Post, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
@@ -101,7 +101,7 @@ func (r PostRepository) FindLatest(ctx context.Context, limit int) ([]*dom.Post,
 }
 
 // FindAll получает все новости.
-func (r PostRepository) FindAll(ctx context.Context) ([]*dom.Post, error) {
+func (r *PostRepository) FindAll(ctx context.Context) ([]*dom.Post, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 

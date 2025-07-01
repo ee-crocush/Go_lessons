@@ -64,15 +64,17 @@ func (f *FindLatestInputDTO) Validate() {
 
 // MapPostsToDTO мапит слайс доменных постов в слайс DTO.
 func MapPostsToDTO(posts []*dom.Post) []PostDTO {
-	postsDTO := make([]PostDTO, len(posts))
-	for i, post := range posts {
-		postsDTO[i] = PostDTO{
-			ID:      post.ID().Value(),
-			Title:   post.Title().Value(),
-			Content: post.Content().Value(),
-			Link:    post.Link().Value(),
-			PubTime: post.PubTime().String(),
-		}
+	postsDTO := make([]PostDTO, 0, len(posts))
+	for _, post := range posts {
+		postsDTO = append(
+			postsDTO, PostDTO{
+				ID:      post.ID().Value(),
+				Title:   post.Title().Value(),
+				Content: post.Content().Value(),
+				Link:    post.Link().Value(),
+				PubTime: post.PubTime().String(),
+			},
+		)
 	}
 	return postsDTO
 }

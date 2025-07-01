@@ -7,18 +7,13 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 // Init инициализирует БД Монго и возвращает клиент MongoDB и выбранную базу.
 func Init(cfg config.Config) (*mongo.Client, *mongo.Database, error) {
 	uri := cfg.MongoDB.URI().String()
-	clientOpts := options.Client().ApplyURI(uri).SetAuth(
-		options.Credential{
-			Username:   cfg.MongoDB.User,
-			Password:   cfg.MongoDB.Password,
-			AuthSource: cfg.MongoDB.Database,
-		},
-	).SetConnectTimeout(cfg.MongoDB.ConnectTimeout)
+	clientOpts := options.Client().ApplyURI(uri).SetConnectTimeout(cfg.MongoDB.ConnectTimeout)
 
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.MongoDB.ConnectTimeout)
 	defer cancel()
@@ -28,7 +23,7 @@ func Init(cfg config.Config) (*mongo.Client, *mongo.Database, error) {
 		return nil, nil, fmt.Errorf("Init.MongoDB.Connect: %w", err)
 	}
 
-	if err = client.Ping(ctx, nil); err != nil {
+	if err = client.Ping(ctx, readpref.Primary()); err != nil {
 		return nil, nil, fmt.Errorf("Init.MongoDB.Ping: %w", err)
 	}
 

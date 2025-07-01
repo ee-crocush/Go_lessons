@@ -1,6 +1,9 @@
 package api
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"errors"
+	"github.com/gofiber/fiber/v2"
+)
 
 // Error представляет ошибку с кодом.
 type Error struct {
@@ -15,7 +18,7 @@ func ErrWithCode(code, msg string) Error {
 
 // Err оборачивает error в стандартный ответ с кодом "internal-error".
 func Err(err error) Error {
-	return Error{Code: "internal-error", Message: err.Error()}
+	return Error{Code: "internal-error", Message: extractRootErrorMsg(err)}
 }
 
 // Req читает JSON‑тело и возвращает DTO.
@@ -29,3 +32,18 @@ func Req[T any](c *fiber.Ctx) (T, error) {
 
 // Resp возвращает данные ответа
 func Resp[T any](data T) T { return data }
+
+func extractRootErrorMsg(err error) string {
+	if err == nil {
+		return ""
+	}
+	root := err
+	for {
+		unwrapped := errors.Unwrap(root)
+		if unwrapped == nil {
+			break
+		}
+		root = unwrapped
+	}
+	return root.Error()
+}

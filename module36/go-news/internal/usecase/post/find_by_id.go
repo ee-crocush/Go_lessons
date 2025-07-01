@@ -7,22 +7,20 @@ import (
 	dom "GoNews/internal/domain/post"
 )
 
-// FindByIDUseCase интерфейс для поиска новости по ID.
-type FindByIDUseCase interface {
-	Execute(ctx context.Context, in FindByIDInputDTO) (PostDTO, error)
-}
+var _ FindByIDUContract = (*FindByIDUseCase)(nil)
 
-type findByIDUseCase struct {
+// FindByIDUseCase представляет структуру, реализующую бизнес-логику для поиска новости по ID.
+type FindByIDUseCase struct {
 	repo dom.Repository
 }
 
 // NewFindByIDUseCase создает новый экземпляр usecase для поиска новости по ID.
-func NewFindByIDUseCase(repo dom.Repository) FindByIDUseCase {
-	return &findByIDUseCase{repo: repo}
+func NewFindByIDUseCase(repo dom.Repository) *FindByIDUseCase {
+	return &FindByIDUseCase{repo: repo}
 }
 
 // Execute выполняет бизнес-логику поиска новости по ID.
-func (uc *findByIDUseCase) Execute(ctx context.Context, in FindByIDInputDTO) (PostDTO, error) {
+func (uc *FindByIDUseCase) Execute(ctx context.Context, in FindByIDInputDTO) (PostDTO, error) {
 	postID, err := dom.NewPostID(in.ID)
 	if err != nil {
 		return PostDTO{}, fmt.Errorf("FindByIDUseCase.NewPostID: %w", err)

@@ -12,17 +12,32 @@ import (
 // LoggingMiddleware возвращает middleware для логирования HTTP-запросов в Fiber.
 func LoggingMiddleware(log zerolog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, done := logger.LogRequest(log, c.Context(), "http", c.Method(), c.Path())
-		defer func() {
-			done()
-			log.Info().
-				Str("request_id", ctx.Value("request_id").(string)).
-				Int("status_code", c.Response().StatusCode()).
-				Msg("Request completed")
-		}()
-
+		// создаём контекст + лог начала
+		ctx, done := logger.LogRequest(
+			log, c.Context(), "http", c.Method(), c.Path(),
+		)
 		c.SetUserContext(ctx)
-		return c.Next()
+
+		err := c.Next()
+		status := c.Response().StatusCode()
+		evt := log.With().
+			Str("request_id", ctx.Value("request_id").(string)).
+			Int("status_code", status).
+			Logger()
+
+		switch {
+		case err != nil:
+			evt.Error().Err(err).Msg("Request failed")
+		case status >= 500:
+			evt.Error().Msg("Request completed with server error")
+		case status >= 400:
+			evt.Warn().Msg("Request completed with client error")
+		default:
+			evt.Info().Msg("Request completed")
+		}
+
+		done()
+		return err
 	}
 }
 
