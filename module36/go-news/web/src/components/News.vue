@@ -107,8 +107,28 @@
     </div>
 
     <div v-else>
-      <h3 class="mx-5 my-3">Найдено новостей: {{ news.length }}</h3>
-      <div v-for="post in news" :key="post.id">
+      <v-card class="mx-5 my-3" elevation="2">
+        <v-card-text class="d-flex justify-space-between align-center">
+          <h3>Найдено новостей: {{ news.length }}</h3>
+          <div v-if="news.length > itemsPerPage">
+            Страница {{ currentPage }} из {{ totalPages }}
+            (показано {{ paginatedNews.length }} из {{ news.length }})
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Пагинация сверху (если много новостей) -->
+      <div v-if="totalPages > 1" class="text-center ma-3">
+        <v-pagination
+            v-model="currentPage"
+            :length="totalPages"
+            :total-visible="7"
+            color="primary"
+        ></v-pagination>
+      </div>
+
+      <!-- Список новостей -->
+      <div v-for="post in paginatedNews" :key="post.id">
         <v-card elevation="10" outlined class="mx-5 my-5">
           <v-card-title>
             <a :href="post.link" target="_blank"> {{ post.title }} </a>
@@ -120,6 +140,16 @@
             </v-card-subtitle>
           </v-card-text>
         </v-card>
+      </div>
+
+      <!-- Пагинация снизу (если много новостей) -->
+      <div v-if="totalPages > 1" class="text-center ma-3">
+        <v-pagination
+            v-model="currentPage"
+            :length="totalPages"
+            :total-visible="7"
+            color="primary"
+        ></v-pagination>
       </div>
     </div>
   </div>
@@ -136,8 +166,21 @@ export default {
       info: '',
       limitCount: null,
       newsId: null,
-      baseUrl: "http://localhost:8080"
+      baseUrl: "http://localhost:8080",
+      // Пагинация
+      currentPage: 1,
+      itemsPerPage: 10
     };
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.news.length / this.itemsPerPage);
+    },
+    paginatedNews() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.news.slice(start, end);
+    }
   },
   methods: {
     async fetchNews(endpoint, successMessage = '', expectWrapped = false) {
@@ -177,6 +220,9 @@ export default {
         if (successMessage) {
           this.info = successMessage;
         }
+
+        // Сбрасываем на первую страницу при новой загрузке
+        this.currentPage = 1;
 
       } catch (err) {
         this.error = `Ошибка при загрузке новостей: ${err.message}`;
