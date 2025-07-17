@@ -1,0 +1,56 @@
+stages:
+  - build
+  - test
+  - image
+
+variables:
+  GO_VERSION: "1.23"
+  DOCKER_VERSION: "28-cli"
+  REGISTRY_HOST: docker.io
+  REGISTRY_OWNER: eecrocush
+  REGISTRY_APP_NAME: module-39
+
+build_app:
+  stage: build
+  image: golang:${GO_VERSION}
+  script:
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./${REGISTRY_APP_NAME} ./
+
+test:
+  stage: test
+  image: golang:${GO_VERSION}
+  script:
+    - echo "run tests..."
+    - go test -v ./...
+
+lint:
+  stage: test
+  image: golang:${GO_VERSION}
+  script:
+    - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
+    - export PATH=$PATH:$(go env GOPATH)/bin
+    - golangci-lint --version
+    - golangci-lint run ./...
+  allow_failure: true
+
+build_image:latest:
+  stage: image
+  image: docker:${DOCKER_VERSION}
+  services:
+    - docker:dind
+  script:
+    - echo "Its only dev, no push and build"
+  only:
+    - main
+
+build_image:stable:
+  stage: image
+  image: docker:${DOCKER_VERSION}
+  services:
+    - docker:dind
+  script:
+    - docker login -u ${REGISTRY_OWNER} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
+    - docker build -t ${REGISTRY_HOST}/${REGISTRY_OWNER}/${REGISTRY_APP_NAME}:${CI_COMMIT_REF_NAME} .
+    - docker push ${REGISTRY_HOST}/${REGISTRY_OWNER}/${REGISTRY_APP_NAME}:${CI_COMMIT_REF_NAME}
+    - echo "New ${REGISTRY_HOST}/${REGISTRY_OWNER}/${REGISTRY_APP_NAME} image ready. Version ${CI_COMMIT_REF_NAME}"
+  when: manual
